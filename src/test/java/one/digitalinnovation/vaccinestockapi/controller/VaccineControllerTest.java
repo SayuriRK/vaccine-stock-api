@@ -17,9 +17,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
+import java.util.Collections;
+
 import static one.digitalinnovation.vaccinestockapi.utils.JsonConversionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,7 +31,7 @@ public class VaccineControllerTest {
 
     private static final String VACCINE_API_URL_PATH = "/api/v1/vaccine";
     private static final long VALID_VACCINE_ID = 1L;
-    private static final long INVALID_VACCINE_ID = 2l;
+    private static final long INVALID_VACCINE_ID = 2l   ;
     private static final String VACCINE_API_SUBPATH_INCREMENT_URL = "/increment";
     private static final String VACCINE_API_SUBPATH_DECREMENT_URL = "/decrement";
 
@@ -106,6 +108,59 @@ public class VaccineControllerTest {
 
         //then
         mockMvc.perform(MockMvcRequestBuilders.get(VACCINE_API_URL_PATH + "/" + vaccineDTO.getName())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    void whenGETListWithVaccineIsCalledThenOkStatusIsReturned() throws Exception {
+        //given
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+
+        //when
+        when(vaccineService.listAll()).thenReturn(Collections.singletonList(vaccineDTO));
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get(VACCINE_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name", is(vaccineDTO.getName())))
+                .andExpect(jsonPath("$[0].company", is(vaccineDTO.getCompany())))
+                .andExpect(jsonPath("$[0].type", is(vaccineDTO.getType().toString())));
+    }
+    @Test
+    void whenGETListWithoutVaccineIsCalledThenOkStatusIsReturned() throws Exception {
+        //given
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+
+        //when
+        when(vaccineService.listAll()).thenReturn(Collections.singletonList(vaccineDTO));
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get(VACCINE_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+    @Test
+    void whenDELETEIsCalledWithValidNameThenNoContentStatusReturned() throws Exception {
+        //given
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+
+        //when
+        doNothing().when(vaccineService).deleteById(vaccineDTO.getId());
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.delete(VACCINE_API_URL_PATH + "/" + vaccineDTO.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+    @Test
+    void whenDELETEIsCalledWithInvalidNameThenNotFoundStatusReturned() throws Exception {
+
+        //when
+        doThrow(VaccineNotFoundException.class).when(vaccineService).deleteById(INVALID_VACCINE_ID);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.delete(VACCINE_API_URL_PATH + "/" + INVALID_VACCINE_ID)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }

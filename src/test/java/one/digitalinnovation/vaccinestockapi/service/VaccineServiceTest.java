@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.*;
@@ -92,4 +94,46 @@ public class VaccineServiceTest {
 
     }
 
+    @Test
+    void whenListIsCalledThenReturnListOfVaccines() {
+
+        // given
+        VaccineDTO expectedFoundVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedFoundVaccine = vaccineMapper.toModel(expectedFoundVaccineDTO);
+
+        //when
+        when(vaccineRepository.findAll()).thenReturn(Collections.singletonList(expectedFoundVaccine));
+
+        //then
+        List<VaccineDTO> foundListVaccinesDTO = vaccineService.listAll();
+        assertThat(foundListVaccinesDTO, is(not(empty())));
+        assertThat(foundListVaccinesDTO.get(0),is(equalTo(expectedFoundVaccineDTO)));
+    }
+    @Test
+    void whenListIsCalledThenReturnEmptyListOfVaccines() {
+
+        //when
+        when(vaccineRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+
+        //then
+        List<VaccineDTO> foundListVaccinesDTO = vaccineService.listAll();
+        assertThat(foundListVaccinesDTO, is(empty()));
+    }
+
+    @Test
+    void whenExclusionIsCalledWithValidIdThenVaccineShouldBeDeleted() throws VaccineNotFoundException {
+        // given
+        VaccineDTO expectedDeletedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedDeletedVaccine = vaccineMapper.toModel(expectedDeletedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedDeletedVaccineDTO.getId())).thenReturn(Optional.of(expectedDeletedVaccine));
+        doNothing().when(vaccineRepository).deleteById(expectedDeletedVaccineDTO.getId());
+
+        //then
+        vaccineService.deleteById(expectedDeletedVaccineDTO.getId());
+
+        verify(vaccineRepository, times(1)).findById(expectedDeletedVaccineDTO.getId());
+        verify(vaccineRepository, times(1)).deleteById(expectedDeletedVaccineDTO.getId());
+    }
 }
