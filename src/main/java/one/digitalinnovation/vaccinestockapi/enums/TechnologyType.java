@@ -7,9 +7,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TechnologyType {
 
-    modRNA ("modRNA"),
-    Inactive ("Inactive"),
-    Adenovirus("Non-Replicating Adenovirus");
+    RNA ("RNA"),
+    INACTIVE ("INACTIVE"),
+    ADENOVIRUS ("ADENOVIRUS");
 
     private final String description;
 }

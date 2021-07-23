@@ -2,9 +2,12 @@ package one.digitalinnovation.vaccinestockapi.controller;
 
 import lombok.AllArgsConstructor;
 
+import one.digitalinnovation.vaccinestockapi.dto.QuantityDTO;
 import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
+import one.digitalinnovation.vaccinestockapi.entity.Vaccine;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineAlreadyRegisteredException;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
+import one.digitalinnovation.vaccinestockapi.exception.VaccineStockExceededException;
 import one.digitalinnovation.vaccinestockapi.service.VaccineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,19 +25,19 @@ public class VaccineController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public VaccineDTO createVaccine (@Valid @RequestBody VaccineDTO vaccineDTO) throws VaccineAlreadyRegisteredException {
-    return  vaccineService.createVaccine(vaccineDTO);
+    public VaccineDTO createVaccine(@Valid @RequestBody VaccineDTO vaccineDTO) throws VaccineAlreadyRegisteredException {
+        return vaccineService.createVaccine(vaccineDTO);
     }
 
     @GetMapping
-    public List<VaccineDTO> listAll(){
+    public List<VaccineDTO> listAll() {
         return vaccineService.listAll();
     }
 
     @GetMapping("/{name}")
     @ResponseStatus(HttpStatus.OK)
-    public VaccineDTO findByName (@PathVariable String name) throws VaccineNotFoundException{
-    return vaccineService.findByName (name);
+    public VaccineDTO findByName(@PathVariable String name) throws VaccineNotFoundException {
+        return vaccineService.findByName(name);
     }
 
    /* @PutMapping("/{id}")
@@ -45,8 +48,12 @@ public class VaccineController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long id)throws VaccineNotFoundException{
-    vaccineService.deleteById(id);
+    public void deleteById(@PathVariable Long id) throws VaccineNotFoundException {
+        vaccineService.deleteById(id);
     }
 
+    @PatchMapping("/{id}/increment")
+    public VaccineDTO increment(@PathVariable Long id, @RequestBody @Valid QuantityDTO quantityDTO) throws VaccineNotFoundException, VaccineStockExceededException {
+        return vaccineService.increment(id, quantityDTO.getQuantity());
+    }
 }

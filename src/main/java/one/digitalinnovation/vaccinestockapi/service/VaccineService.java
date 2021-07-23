@@ -5,6 +5,7 @@ import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
 import one.digitalinnovation.vaccinestockapi.entity.Vaccine;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineAlreadyRegisteredException;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
+import one.digitalinnovation.vaccinestockapi.exception.VaccineStockExceededException;
 import one.digitalinnovation.vaccinestockapi.mapper.VaccineMapper;
 import one.digitalinnovation.vaccinestockapi.repository.VaccineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ public class VaccineService {
     private final VaccineMapper vaccineMapper = VaccineMapper.INSTANCE;
 
     public VaccineDTO createVaccine(VaccineDTO vaccineDTO) throws VaccineAlreadyRegisteredException {
+        verifyIfAlreadyRegistered(vaccineDTO.getName());
         Vaccine vaccine = vaccineMapper.toModel(vaccineDTO);
         Vaccine savedVaccine = vaccineRepository.save(vaccine);
         return vaccineMapper.toDTO(savedVaccine);
@@ -60,5 +62,14 @@ public class VaccineService {
             return vaccineRepository.findById(id)
                     .orElseThrow(() -> new VaccineNotFoundException(id));
         }
-
+    public VaccineDTO increment(Long id, int quantityToIncrement) throws VaccineNotFoundException, VaccineStockExceededException {
+        Vaccine vaccineToIncrementStock = verifyIfExists(id);
+        int quantityAfterIncrement = quantityToIncrement + vaccineToIncrementStock.getQuantity();
+        if (quantityAfterIncrement <= vaccineToIncrementStock.getMax()) {
+            vaccineToIncrementStock.setQuantity(vaccineToIncrementStock.getQuantity() + quantityToIncrement);
+            Vaccine incrementedBeerStock = vaccineRepository.save(vaccineToIncrementStock);
+            return vaccineMapper.toDTO(incrementedBeerStock);
+        }
+        throw new VaccineStockExceededException(id, quantityToIncrement);
+    }
     }
