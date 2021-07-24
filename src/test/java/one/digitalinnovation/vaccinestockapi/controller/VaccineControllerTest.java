@@ -1,6 +1,7 @@
 package one.digitalinnovation.vaccinestockapi.controller;
 
 import one.digitalinnovation.vaccinestockapi.builder.VaccineDTOBuilder;
+import one.digitalinnovation.vaccinestockapi.dto.QuantityDTO;
 import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
 import one.digitalinnovation.vaccinestockapi.service.VaccineService;
@@ -163,6 +164,25 @@ public class VaccineControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(VACCINE_API_URL_PATH + "/" + INVALID_VACCINE_ID)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+    @Test
+    void whenPATCHIsCalledToIncrementDiscountThenOKstatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(10)
+                .build();
+
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        vaccineDTO.setQuantity(vaccineDTO.getQuantity() + quantityDTO.getQuantity());
+
+        when(vaccineService.increment(VALID_VACCINE_ID, quantityDTO.getQuantity())).thenReturn(vaccineDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + VALID_VACCINE_ID + VACCINE_API_SUBPATH_INCREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(vaccineDTO.getName())))
+                .andExpect(jsonPath("$.company", is(vaccineDTO.getCompany())))
+                .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())))
+                .andExpect(jsonPath("$.quantity", is(vaccineDTO.getQuantity())));
     }
 }
 

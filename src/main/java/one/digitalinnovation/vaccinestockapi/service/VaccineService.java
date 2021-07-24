@@ -67,8 +67,8 @@ public class VaccineService {
         int quantityAfterIncrement = quantityToIncrement + vaccineToIncrementStock.getQuantity();
         if (quantityAfterIncrement <= vaccineToIncrementStock.getMax()) {
             vaccineToIncrementStock.setQuantity(vaccineToIncrementStock.getQuantity() + quantityToIncrement);
-            Vaccine incrementedBeerStock = vaccineRepository.save(vaccineToIncrementStock);
-            return vaccineMapper.toDTO(incrementedBeerStock);
+            Vaccine incrementedVaccineStock = vaccineRepository.save(vaccineToIncrementStock);
+            return vaccineMapper.toDTO(incrementedVaccineStock);
         }
         throw new VaccineStockExceededException(id, quantityToIncrement);
     }

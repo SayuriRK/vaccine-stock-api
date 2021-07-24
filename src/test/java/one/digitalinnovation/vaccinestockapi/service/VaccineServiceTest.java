@@ -5,6 +5,7 @@ import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
 import one.digitalinnovation.vaccinestockapi.entity.Vaccine;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineAlreadyRegisteredException;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
+import one.digitalinnovation.vaccinestockapi.exception.VaccineStockExceededException;
 import one.digitalinnovation.vaccinestockapi.mapper.VaccineMapper;
 import one.digitalinnovation.vaccinestockapi.repository.VaccineRepository;
 import org.junit.jupiter.api.Test;
@@ -136,4 +137,49 @@ public class VaccineServiceTest {
         verify(vaccineRepository, times(1)).findById(expectedDeletedVaccineDTO.getId());
         verify(vaccineRepository, times(1)).deleteById(expectedDeletedVaccineDTO.getId());
     }
+
+    @Test
+    void whenIncrementedIsCalledThenIncrementedVaccineStock() throws VaccineNotFoundException, VaccineStockExceededException {
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+        when(vaccineRepository.save(expectedVaccine)).thenReturn(expectedVaccine);
+
+        int quantityToIncrement = 10;
+        int expectedQuantityAfterIncrement = expectedVaccineDTO.getQuantity() + quantityToIncrement;
+
+        //then
+        VaccineDTO incrementVaccineDTO = vaccineService.increment(expectedVaccineDTO.getId(), quantityToIncrement);
+
+        assertThat(expectedQuantityAfterIncrement, equalTo(incrementVaccineDTO.getQuantity()));
+        assertThat(expectedQuantityAfterIncrement, lessThan(expectedVaccineDTO.getMax()));
+    }
+    @Test
+    void whenIncrementedIsGreaterThanMaxThrowException(){
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+
+        int quantityToIncrement = 500;
+        assertThrows(VaccineStockExceededException.class, () -> vaccineService.increment(expectedVaccineDTO.getId(), quantityToIncrement));
+    }
+    @Test
+    void whenIncrementedAfterSumIsGreaterThanMaxThrowException(){
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+
+        int quantityToIncrement = 491;
+        assertThrows(VaccineStockExceededException.class, () -> vaccineService.increment(expectedVaccineDTO.getId(), quantityToIncrement));
+    }
+
 }
