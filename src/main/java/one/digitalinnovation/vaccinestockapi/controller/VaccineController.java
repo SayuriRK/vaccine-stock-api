@@ -25,26 +25,19 @@ public class VaccineController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public VaccineDTO createVaccine(@Valid @RequestBody VaccineDTO vaccineDTO) throws VaccineAlreadyRegisteredException {
+    public VaccineDTO createVaccine(@RequestBody @Valid VaccineDTO vaccineDTO) throws VaccineAlreadyRegisteredException {
         return vaccineService.createVaccine(vaccineDTO);
     }
 
     @GetMapping
-    public List<VaccineDTO> listAll() {
+    public List<VaccineDTO> listVaccines() {
         return vaccineService.listAll();
     }
 
     @GetMapping("/{name}")
-    @ResponseStatus(HttpStatus.OK)
     public VaccineDTO findByName(@PathVariable String name) throws VaccineNotFoundException {
         return vaccineService.findByName(name);
     }
-
-   /* @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public VaccineDTO updateById (@PathVariable Long id, @Valid @RequestBody VaccineDTO vaccineDTO) throws VaccineNotFoundException{
-        return vaccineService.updateById(id, vaccineDTO);
-    }*/
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -55,5 +48,10 @@ public class VaccineController {
     @PatchMapping("/{id}/increment")
     public VaccineDTO increment(@PathVariable Long id, @RequestBody @Valid QuantityDTO quantityDTO) throws VaccineNotFoundException, VaccineStockExceededException {
         return vaccineService.increment(id, quantityDTO.getQuantity());
+    }
+
+    @PatchMapping("/{id}/decrement")
+    public VaccineDTO decrement(@PathVariable Long id, @RequestBody @Valid QuantityDTO quantityDTO) throws VaccineNotFoundException, VaccineStockExceededException {
+        return vaccineService.decrement(id, quantityDTO.getQuantity());
     }
 }

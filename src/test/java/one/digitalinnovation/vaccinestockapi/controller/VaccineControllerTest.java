@@ -4,6 +4,7 @@ import one.digitalinnovation.vaccinestockapi.builder.VaccineDTOBuilder;
 import one.digitalinnovation.vaccinestockapi.dto.QuantityDTO;
 import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
+import one.digitalinnovation.vaccinestockapi.exception.VaccineStockExceededException;
 import one.digitalinnovation.vaccinestockapi.service.VaccineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ public class VaccineControllerTest {
 
     private static final String VACCINE_API_URL_PATH = "/api/v1/vaccine";
     private static final long VALID_VACCINE_ID = 1L;
-    private static final long INVALID_VACCINE_ID = 2l   ;
+    private static final long INVALID_VACCINE_ID = 2l;
     private static final String VACCINE_API_SUBPATH_INCREMENT_URL = "/increment";
     private static final String VACCINE_API_SUBPATH_DECREMENT_URL = "/decrement";
 
@@ -100,7 +101,7 @@ public class VaccineControllerTest {
                 .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())));
     }
     @Test
-    void whenGETIsCalledWithoutRegisteredNameThenNotFoundStatusReturned() throws Exception {
+    void whenGETIsCalledWithoutRegisteredNameThenNotFoundStatusIsReturned() throws Exception {
         //given
         VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
 
@@ -142,7 +143,7 @@ public class VaccineControllerTest {
                 .andExpect(status().isOk());
     }
     @Test
-    void whenDELETEIsCalledWithValidNameThenNoContentStatusReturned() throws Exception {
+    void whenDELETEIsCalledWithValidNameThenNoContentStatusIsReturned() throws Exception {
         //given
         VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
 
@@ -155,8 +156,7 @@ public class VaccineControllerTest {
                 .andExpect(status().isNoContent());
     }
     @Test
-    void whenDELETEIsCalledWithInvalidNameThenNotFoundStatusReturned() throws Exception {
-
+    void whenDELETEIsCalledWithInvalidNameThenNotFoundStatusIsReturned() throws Exception {
         //when
         doThrow(VaccineNotFoundException.class).when(vaccineService).deleteById(INVALID_VACCINE_ID);
 
@@ -166,7 +166,7 @@ public class VaccineControllerTest {
                 .andExpect(status().isNotFound());
     }
     @Test
-    void whenPATCHIsCalledToIncrementDiscountThenOKstatusIsReturned() throws Exception {
+    void whenPATCHIsCalledToIncrementDiscountThenOKStatusIsReturned() throws Exception {
         QuantityDTO quantityDTO = QuantityDTO.builder()
                 .quantity(10)
                 .build();
@@ -183,6 +183,86 @@ public class VaccineControllerTest {
                 .andExpect(jsonPath("$.company", is(vaccineDTO.getCompany())))
                 .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())))
                 .andExpect(jsonPath("$.quantity", is(vaccineDTO.getQuantity())));
+    }
+
+    @Test
+    void whenPATCHIsCalledToIncrementGreaterThanMaxThenBadRequestStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(100)
+                .build();
+
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        vaccineDTO.setQuantity(vaccineDTO.getQuantity() + quantityDTO.getQuantity());
+
+        when(vaccineService.increment(VALID_VACCINE_ID, quantityDTO.getQuantity())).thenThrow(VaccineStockExceededException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + VALID_VACCINE_ID + VACCINE_API_SUBPATH_INCREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenPATCHIsCalledWithInvalidIdToIncrementThenNotFoundStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(100)
+                .build();
+
+        when(vaccineService.increment(INVALID_VACCINE_ID, quantityDTO.getQuantity())).thenThrow(VaccineNotFoundException.class);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + INVALID_VACCINE_ID + VACCINE_API_SUBPATH_INCREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void whenPATCHIsCalledToDecrementDiscountThenOKStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(10)
+                .build();
+
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        vaccineDTO.setQuantity(vaccineDTO.getQuantity() + quantityDTO.getQuantity());
+
+        when(vaccineService.decrement(VALID_VACCINE_ID, quantityDTO.getQuantity())).thenReturn(vaccineDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + VALID_VACCINE_ID + VACCINE_API_SUBPATH_DECREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(vaccineDTO.getName())))
+                .andExpect(jsonPath("$.company", is(vaccineDTO.getCompany())))
+                .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())))
+                .andExpect(jsonPath("$.quantity", is(vaccineDTO.getQuantity())));
+    }
+    @Test
+    void whenPATCHIsCalledToDecrementLowerThanZeroThenBadRequestStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(100)
+                .build();
+
+        VaccineDTO vaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        vaccineDTO.setQuantity(vaccineDTO.getQuantity() + quantityDTO.getQuantity());
+
+        when(vaccineService.decrement(VALID_VACCINE_ID, quantityDTO.getQuantity())).thenThrow(VaccineStockExceededException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + VALID_VACCINE_ID + VACCINE_API_SUBPATH_DECREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isBadRequest());
+    }
+    @Test
+    void whenPATCHIsCalledWithInvalidIdToDecrementThenNotFoundStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(6)
+                .build();
+
+        when(vaccineService.decrement(INVALID_VACCINE_ID, quantityDTO.getQuantity())).thenThrow(VaccineNotFoundException.class);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.patch(VACCINE_API_URL_PATH + "/" + INVALID_VACCINE_ID + VACCINE_API_SUBPATH_DECREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO)))
+                .andExpect(status().isNotFound());
     }
 }
 

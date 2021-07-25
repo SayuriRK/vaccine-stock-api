@@ -14,7 +14,7 @@ public class VaccineDTOBuilder {
     private String name = "mRNA-1273";
 
     @Builder.Default
-    private String company = "Moderna Therapeutics";
+    private String company = "Moderna";
 
     @Builder.Default
     private int max = 50;

@@ -26,6 +26,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)//meaning: to run this unit test I want to use the mockito extension
 public class VaccineServiceTest {
 
+    private static final long INVALID_BEER_ID = 1l;
+
     @Mock //make a clone of the vaccine repository
     private VaccineRepository vaccineRepository;
     //mapper is automatically inserted as a constant, not need to mock it
@@ -107,6 +109,7 @@ public class VaccineServiceTest {
 
         //then
         List<VaccineDTO> foundListVaccinesDTO = vaccineService.listAll();
+
         assertThat(foundListVaccinesDTO, is(not(empty())));
         assertThat(foundListVaccinesDTO.get(0),is(equalTo(expectedFoundVaccineDTO)));
     }
@@ -118,6 +121,7 @@ public class VaccineServiceTest {
 
         //then
         List<VaccineDTO> foundListVaccinesDTO = vaccineService.listAll();
+
         assertThat(foundListVaccinesDTO, is(empty()));
     }
 
@@ -157,6 +161,7 @@ public class VaccineServiceTest {
         assertThat(expectedQuantityAfterIncrement, equalTo(incrementVaccineDTO.getQuantity()));
         assertThat(expectedQuantityAfterIncrement, lessThan(expectedVaccineDTO.getMax()));
     }
+
     @Test
     void whenIncrementedIsGreaterThanMaxThrowException(){
         // given
@@ -166,9 +171,10 @@ public class VaccineServiceTest {
         //when
         when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
 
-        int quantityToIncrement = 500;
+        int quantityToIncrement = 80;
         assertThrows(VaccineStockExceededException.class, () -> vaccineService.increment(expectedVaccineDTO.getId(), quantityToIncrement));
     }
+
     @Test
     void whenIncrementedAfterSumIsGreaterThanMaxThrowException(){
         // given
@@ -178,8 +184,80 @@ public class VaccineServiceTest {
         //when
         when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
 
-        int quantityToIncrement = 491;
+        int quantityToIncrement = 45;
         assertThrows(VaccineStockExceededException.class, () -> vaccineService.increment(expectedVaccineDTO.getId(), quantityToIncrement));
     }
 
+    @Test
+    void whenIncrementIsCalledWithInvalidIdThenThrowException() {
+        int quantityToIncrement = 10;
+
+        //when
+        when(vaccineRepository.findById(INVALID_BEER_ID)).thenReturn(Optional.empty());
+
+        //then
+        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_BEER_ID, quantityToIncrement));
+    }
+
+    @Test
+    void whenDecrementedIsCalledThenDecrementedVaccineStock() throws VaccineNotFoundException, VaccineStockExceededException {
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+        when(vaccineRepository.save(expectedVaccine)).thenReturn(expectedVaccine);
+
+        int quantityToDecrement = 5;
+        int expectedQuantityAfterDecrement = expectedVaccineDTO.getQuantity() - quantityToDecrement;
+        //then
+        VaccineDTO decrementVaccineDTO = vaccineService.decrement(expectedVaccineDTO.getId(), quantityToDecrement);
+
+        assertThat(expectedQuantityAfterDecrement, equalTo(decrementVaccineDTO.getQuantity()));
+        assertThat(expectedQuantityAfterDecrement, greaterThan(0));
+    }
+
+    @Test
+    void whenDecrementedIsCalledToEmptyVaccineStock() throws VaccineNotFoundException, VaccineStockExceededException {
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+        when(vaccineRepository.save(expectedVaccine)).thenReturn(expectedVaccine);
+
+        int quantityToDecrement = 10;
+        int expectedQuantityAfterDecrement = expectedVaccineDTO.getQuantity() - quantityToDecrement;
+        //then
+        VaccineDTO decrementVaccineDTO = vaccineService.decrement(expectedVaccineDTO.getId(), quantityToDecrement);
+
+        assertThat(expectedQuantityAfterDecrement, equalTo(0));
+        assertThat(expectedQuantityAfterDecrement, equalTo(decrementVaccineDTO.getQuantity()));
+    }
+
+    @Test
+    void whenDecrementIsLowerThanZeroThenThrowException(){
+        // given
+        VaccineDTO expectedVaccineDTO = VaccineDTOBuilder.builder().build().toVaccineDTO();
+        Vaccine expectedVaccine = vaccineMapper.toModel(expectedVaccineDTO);
+
+        //when
+        when(vaccineRepository.findById(expectedVaccineDTO.getId())).thenReturn(Optional.of(expectedVaccine));
+
+        int quantityToDecrement = 90;
+        assertThrows(VaccineStockExceededException.class, () -> vaccineService.decrement(expectedVaccineDTO.getId(), quantityToDecrement));
+    }
+
+    @Test
+    void whenDecrementIsCalledWithInvalidIdThenThrowException() {
+        int quantityToDecrement = 10;
+
+        //when
+        when(vaccineRepository.findById(INVALID_BEER_ID)).thenReturn(Optional.empty());
+
+        //then
+        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_BEER_ID, quantityToDecrement));
+    }
 }

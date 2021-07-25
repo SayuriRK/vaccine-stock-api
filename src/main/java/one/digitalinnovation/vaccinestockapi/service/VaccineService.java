@@ -29,10 +29,10 @@ public class VaccineService {
         return vaccineMapper.toDTO(savedVaccine);
     }
     public List<VaccineDTO> listAll() {
-        List<Vaccine> vaccine = vaccineRepository.findAll();
-        return vaccine.stream()
-        .map(vaccineMapper::toDTO)
-        .collect(Collectors.toList());
+        return vaccineRepository.findAll()
+                .stream()
+                .map(vaccineMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     public VaccineDTO findByName(String name) throws VaccineNotFoundException{
@@ -43,33 +43,41 @@ public class VaccineService {
 
     public  void deleteById (Long id) throws VaccineNotFoundException {
         verifyIfExists(id);
-        vaccineRepository.deleteById(id);}
-
-    /*public void updateById (Long id, VaccineDTO vaccineDTO) throws VaccineNotFoundException {
-        verifyIfExists(id);
-        Vaccine vaccineToUpdate = vaccineMapper.toModel(vaccineDTO);
-        Vaccine updatedVaccine = vaccineRepository.save(vaccineToUpdate);
+        vaccineRepository.deleteById(id);
     }
-*/
-        private void verifyIfAlreadyRegistered (String name) throws VaccineAlreadyRegisteredException {
-            Optional<Vaccine> optSavedVaccine = vaccineRepository.findByName(name);
-            if (optSavedVaccine.isPresent()) {
-                throw new VaccineAlreadyRegisteredException(name);
-            }
+
+    private void verifyIfAlreadyRegistered (String name) throws VaccineAlreadyRegisteredException {
+        Optional<Vaccine> optSavedVaccine = vaccineRepository.findByName(name);
+        if (optSavedVaccine.isPresent()) {
+            throw new VaccineAlreadyRegisteredException(name);
+        }
+
         }
 
         private Vaccine verifyIfExists (Long id) throws VaccineNotFoundException {
             return vaccineRepository.findById(id)
                     .orElseThrow(() -> new VaccineNotFoundException(id));
         }
+
     public VaccineDTO increment(Long id, int quantityToIncrement) throws VaccineNotFoundException, VaccineStockExceededException {
         Vaccine vaccineToIncrementStock = verifyIfExists(id);
-        int quantityAfterIncrement = quantityToIncrement + vaccineToIncrementStock.getQuantity();
-        if (quantityAfterIncrement <= vaccineToIncrementStock.getMax()) {
-            vaccineToIncrementStock.setQuantity(vaccineToIncrementStock.getQuantity() + quantityToIncrement);
-            Vaccine incrementedVaccineStock = vaccineRepository.save(vaccineToIncrementStock);
-            return vaccineMapper.toDTO(incrementedVaccineStock);
+        int quantityAfterIncrement = vaccineToIncrementStock.getQuantity() + quantityToIncrement; //sum of what we had + the increment
+        if (quantityAfterIncrement <= vaccineToIncrementStock.getMax()) { //if the sum is less or equal than the max quantity
+            vaccineToIncrementStock.setQuantity(vaccineToIncrementStock.getQuantity() + quantityToIncrement);//the quantity is the new sum
+            Vaccine incrementedVaccineStock = vaccineRepository.save(vaccineToIncrementStock);//then you save the new quantity
+            return vaccineMapper.toDTO(incrementedVaccineStock);//return the new quantity
         }
         throw new VaccineStockExceededException(id, quantityToIncrement);
+        }
+
+    public VaccineDTO decrement(Long id, int quantityToDecrement) throws VaccineNotFoundException, VaccineStockExceededException {
+        Vaccine vaccineToDecrementStock = verifyIfExists(id);
+        int quantityAfterDecrement = vaccineToDecrementStock.getQuantity() - quantityToDecrement;//subtraction of what we had -the decrement
+        if (quantityAfterDecrement >= 0) {   //if subtraction is greater than or equal zero
+            vaccineToDecrementStock.setQuantity(quantityAfterDecrement);// the quantity is the new subtraction
+            Vaccine decrementedVaccineStock = vaccineRepository.save(vaccineToDecrementStock);//save new quantity
+            return vaccineMapper.toDTO(decrementedVaccineStock); //return it
+        }
+        throw new VaccineStockExceededException(id, quantityToDecrement);  //else throw the exception
     }
     }
