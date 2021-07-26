@@ -1,10 +1,8 @@
 package one.digitalinnovation.vaccinestockapi.controller;
 
 import lombok.AllArgsConstructor;
-
 import one.digitalinnovation.vaccinestockapi.dto.QuantityDTO;
 import one.digitalinnovation.vaccinestockapi.dto.VaccineDTO;
-import one.digitalinnovation.vaccinestockapi.entity.Vaccine;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineAlreadyRegisteredException;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineNotFoundException;
 import one.digitalinnovation.vaccinestockapi.exception.VaccineStockExceededException;
