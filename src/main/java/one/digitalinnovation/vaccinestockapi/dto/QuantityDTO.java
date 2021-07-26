@@ -15,6 +15,6 @@ import javax.validation.constraints.NotNull;
 public class QuantityDTO {
 
     @NotNull
-    @Max(100)
+    @Max(500)
     private Integer quantity;
 }

@@ -55,6 +55,7 @@ public class VaccineServiceTest {
         //using hamcrest test became more fluid
         assertThat(createdVaccineDTO.getQuantity(), is(greaterThan(2)));
     }
+
     @Test
     void whenAlreadyRegisteredVaccineInformedThenAnExceptionShouldBeThrow() {
         // given
@@ -83,6 +84,7 @@ public class VaccineServiceTest {
 
         assertThat(foundVaccineDTO, is(equalTo(expectedFoundVaccineDTO)));
     }
+
     @Test
     void whenNoRegisteredVaccineNameIsGivenThenThrowException() {
 
@@ -94,7 +96,6 @@ public class VaccineServiceTest {
 
         //then
         assertThrows(VaccineNotFoundException.class, () -> vaccineService.findByName(expectedFoundVaccineDTO.getName()));
-
     }
 
     @Test
@@ -113,6 +114,7 @@ public class VaccineServiceTest {
         assertThat(foundListVaccinesDTO, is(not(empty())));
         assertThat(foundListVaccinesDTO.get(0),is(equalTo(expectedFoundVaccineDTO)));
     }
+
     @Test
     void whenListIsCalledThenReturnEmptyListOfVaccines() {
 
@@ -261,3 +263,4 @@ public class VaccineServiceTest {
         assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_BEER_ID, quantityToDecrement));
     }
 }
+

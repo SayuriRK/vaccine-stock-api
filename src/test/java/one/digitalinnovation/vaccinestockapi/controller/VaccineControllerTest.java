@@ -100,6 +100,7 @@ public class VaccineControllerTest {
                 .andExpect(jsonPath("$.company", is(vaccineDTO.getCompany())))
                 .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())));
     }
+
     @Test
     void whenGETIsCalledWithoutRegisteredNameThenNotFoundStatusIsReturned() throws Exception {
         //given
@@ -113,6 +114,7 @@ public class VaccineControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     void whenGETListWithVaccineIsCalledThenOkStatusIsReturned() throws Exception {
         //given
@@ -129,6 +131,7 @@ public class VaccineControllerTest {
                 .andExpect(jsonPath("$[0].company", is(vaccineDTO.getCompany())))
                 .andExpect(jsonPath("$[0].type", is(vaccineDTO.getType().toString())));
     }
+
     @Test
     void whenGETListWithoutVaccineIsCalledThenOkStatusIsReturned() throws Exception {
         //given
@@ -142,6 +145,7 @@ public class VaccineControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
     @Test
     void whenDELETEIsCalledWithValidNameThenNoContentStatusIsReturned() throws Exception {
         //given
@@ -155,6 +159,7 @@ public class VaccineControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
+
     @Test
     void whenDELETEIsCalledWithInvalidNameThenNotFoundStatusIsReturned() throws Exception {
         //when
@@ -165,6 +170,7 @@ public class VaccineControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     void whenPATCHIsCalledToIncrementDiscountThenOKStatusIsReturned() throws Exception {
         QuantityDTO quantityDTO = QuantityDTO.builder()
@@ -235,6 +241,7 @@ public class VaccineControllerTest {
                 .andExpect(jsonPath("$.type", is(vaccineDTO.getType().toString())))
                 .andExpect(jsonPath("$.quantity", is(vaccineDTO.getQuantity())));
     }
+
     @Test
     void whenPATCHIsCalledToDecrementLowerThanZeroThenBadRequestStatusIsReturned() throws Exception {
         QuantityDTO quantityDTO = QuantityDTO.builder()
@@ -250,6 +257,7 @@ public class VaccineControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(quantityDTO))).andExpect(status().isBadRequest());
     }
+
     @Test
     void whenPATCHIsCalledWithInvalidIdToDecrementThenNotFoundStatusIsReturned() throws Exception {
         QuantityDTO quantityDTO = QuantityDTO.builder()
@@ -264,5 +272,6 @@ public class VaccineControllerTest {
                 .content(asJsonString(quantityDTO)))
                 .andExpect(status().isNotFound());
     }
+
 }
 

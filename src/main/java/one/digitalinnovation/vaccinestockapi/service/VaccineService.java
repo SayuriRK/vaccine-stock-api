@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor(onConstructor = @__ (@Autowired))
+@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class VaccineService {
 
     private final VaccineRepository vaccineRepository;
@@ -35,29 +35,28 @@ public class VaccineService {
                 .collect(Collectors.toList());
     }
 
-    public VaccineDTO findByName(String name) throws VaccineNotFoundException{
-    Vaccine foundVaccine = vaccineRepository.findByName(name)
-            .orElseThrow(()-> new VaccineNotFoundException(name));
-    return vaccineMapper.toDTO(foundVaccine);
+    public VaccineDTO findByName(String name) throws VaccineNotFoundException {
+        Vaccine foundVaccine = vaccineRepository.findByName(name)
+                .orElseThrow(() -> new VaccineNotFoundException(name));
+        return vaccineMapper.toDTO(foundVaccine);
     }
 
-    public  void deleteById (Long id) throws VaccineNotFoundException {
+    public void deleteById(Long id) throws VaccineNotFoundException {
         verifyIfExists(id);
         vaccineRepository.deleteById(id);
     }
 
-    private void verifyIfAlreadyRegistered (String name) throws VaccineAlreadyRegisteredException {
+    private void verifyIfAlreadyRegistered(String name) throws VaccineAlreadyRegisteredException {
         Optional<Vaccine> optSavedVaccine = vaccineRepository.findByName(name);
         if (optSavedVaccine.isPresent()) {
             throw new VaccineAlreadyRegisteredException(name);
         }
+    }
 
-        }
-
-        private Vaccine verifyIfExists (Long id) throws VaccineNotFoundException {
-            return vaccineRepository.findById(id)
-                    .orElseThrow(() -> new VaccineNotFoundException(id));
-        }
+    private Vaccine verifyIfExists(Long id) throws VaccineNotFoundException {
+        return vaccineRepository.findById(id)
+                .orElseThrow(() -> new VaccineNotFoundException(id));
+    }
 
     public VaccineDTO increment(Long id, int quantityToIncrement) throws VaccineNotFoundException, VaccineStockExceededException {
         Vaccine vaccineToIncrementStock = verifyIfExists(id);
@@ -68,7 +67,7 @@ public class VaccineService {
             return vaccineMapper.toDTO(incrementedVaccineStock);//return the new quantity
         }
         throw new VaccineStockExceededException(id, quantityToIncrement);
-        }
+    }
 
     public VaccineDTO decrement(Long id, int quantityToDecrement) throws VaccineNotFoundException, VaccineStockExceededException {
         Vaccine vaccineToDecrementStock = verifyIfExists(id);
@@ -80,4 +79,4 @@ public class VaccineService {
         }
         throw new VaccineStockExceededException(id, quantityToDecrement);  //else throw the exception
     }
-    }
+}

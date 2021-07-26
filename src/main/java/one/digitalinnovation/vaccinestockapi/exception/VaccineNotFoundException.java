@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class VaccineNotFoundException extends Exception {
 
-    public VaccineNotFoundException(String vaccinename) {
-        super(String.format("Vaccine with name %s was not found",vaccinename));
+    public VaccineNotFoundException(String vaccineName) {
+        super(String.format("Vaccine with name %s was not found",vaccineName));
     }
 
     public VaccineNotFoundException (Long id) {
