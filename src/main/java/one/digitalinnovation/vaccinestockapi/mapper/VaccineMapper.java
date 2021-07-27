@@ -5,7 +5,7 @@ import one.digitalinnovation.vaccinestockapi.entity.Vaccine;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface VaccineMapper {
 
     VaccineMapper INSTANCE = Mappers.getMapper(VaccineMapper.class);

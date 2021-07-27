@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)//meaning: to run this unit test I want to use the mockito extension
 public class VaccineServiceTest {
 
-    private static final long INVALID_BEER_ID = 1l;
+    private static final long INVALID_VACCINE_ID = 1l;
 
     @Mock //make a clone of the vaccine repository
     private VaccineRepository vaccineRepository;
@@ -195,10 +195,10 @@ public class VaccineServiceTest {
         int quantityToIncrement = 10;
 
         //when
-        when(vaccineRepository.findById(INVALID_BEER_ID)).thenReturn(Optional.empty());
+        when(vaccineRepository.findById(INVALID_VACCINE_ID)).thenReturn(Optional.empty());
 
         //then
-        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_BEER_ID, quantityToIncrement));
+        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_VACCINE_ID, quantityToIncrement));
     }
 
     @Test
@@ -257,10 +257,10 @@ public class VaccineServiceTest {
         int quantityToDecrement = 10;
 
         //when
-        when(vaccineRepository.findById(INVALID_BEER_ID)).thenReturn(Optional.empty());
+        when(vaccineRepository.findById(INVALID_VACCINE_ID)).thenReturn(Optional.empty());
 
         //then
-        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_BEER_ID, quantityToDecrement));
+        assertThrows(VaccineNotFoundException.class, () -> vaccineService.increment(INVALID_VACCINE_ID, quantityToDecrement));
     }
 }
 

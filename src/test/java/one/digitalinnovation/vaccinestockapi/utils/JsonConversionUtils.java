@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class JsonConversionUtils {
 
-    public static String asJsonString(Object bookDTO) {
+    public static String asJsonString(Object objectDTO) {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -15,7 +15,7 @@ public class JsonConversionUtils {
             objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
             objectMapper.registerModules(new JavaTimeModule());
 
-            return objectMapper.writeValueAsString(bookDTO);
+            return objectMapper.writeValueAsString(objectDTO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

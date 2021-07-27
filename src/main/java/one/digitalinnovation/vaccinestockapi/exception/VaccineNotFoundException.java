@@ -11,5 +11,6 @@ public class VaccineNotFoundException extends Exception {
     }
 
     public VaccineNotFoundException (Long id) {
-        super(String.format("Vaccine with ID %s was not found", id));}
+        super(String.format("Vaccine with ID %s was not found", id));
+    }
 }
